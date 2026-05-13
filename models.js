@@ -37,7 +37,7 @@ const timelineSchema = new mongoose.Schema({
   lastUpdated:  { type: Date, default: Date.now },
 }, { timestamps: true });
 
-timelineSchema.pre('save', function(next) {
+timelineSchema.pre('save', async function() {
   const hasOwner = this.permissions.some(
     p => p.email === this.ownerEmail && p.role === 'owner'
   );
@@ -45,7 +45,6 @@ timelineSchema.pre('save', function(next) {
     this.permissions.unshift({ email: this.ownerEmail, role: 'owner' });
   }
   this.lastUpdated = new Date();
-  next();
 });
 
 const sessionSchema = new mongoose.Schema({
