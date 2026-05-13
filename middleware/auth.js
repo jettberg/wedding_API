@@ -1,16 +1,4 @@
-const { Session, Timeline } = require('./models');
-
-// ─── requireAuth ───────────────────────────────────────────────────────────
-// Middleware that checks for a valid session token in the Authorization header.
-// On success it attaches req.userEmail and req.userRole to the request.
-//
-// Usage:
-//   router.get('/protected', requireAuth, (req, res) => { ... })
-//
-// The client must send:
-//   Authorization: Bearer <token>
-//
-// The token is returned from POST /users/login
+const { Session, Timeline } = require('../models'); // <-- was './models'
 
 async function requireAuth(req, res, next) {
   try {
@@ -30,9 +18,6 @@ async function requireAuth(req, res, next) {
 
     req.userEmail = session.email;
 
-    // Optionally attach the user's role for the relevant timeline.
-    // Routes that need to check role can call requireRole() separately,
-    // but we load it here for convenience if timelineId is on the request.
     const timelineId = req.params.timelineId || req.body?.timelineId;
     if (timelineId) {
       const timeline = await Timeline.findById(timelineId).select('permissions ownerEmail');
@@ -49,13 +34,6 @@ async function requireAuth(req, res, next) {
     res.status(500).json({ error: 'Server error during authentication.' });
   }
 }
-
-// ─── requireRole ──────────────────────────────────────────────────────────
-// Factory that returns middleware enforcing a minimum role level.
-// Role hierarchy: owner > editor > viewer
-//
-// Usage:
-//   router.put('/timeline/:timelineId', requireAuth, requireRole('editor'), handler)
 
 const ROLE_RANK = { owner: 3, editor: 2, viewer: 1 };
 
